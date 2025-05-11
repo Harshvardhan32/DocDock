@@ -5,6 +5,8 @@ import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import { Route, Routes } from 'react-router-dom';
 import Appointments from './pages/Appointments';
+import BookAppointment from './pages/BookAppointment';
+import Profile from './pages/Profile';
 
 function App() {
 
@@ -13,9 +15,10 @@ function App() {
     return <>
         <Routes>
             <Route path='/' element={<DoctorDashboard />} />
-            <Route path='/profile' element={<DoctorDashboard />} />
+            <Route path='/profile' element={<Profile />} />
             <Route path='/doctors' element={<DoctorDashboard />} />
             <Route path='/appointments' element={<Appointments />} />
+            <Route path="/book-appointment" element={<BookAppointment />} />
         </Routes>
     </>
 

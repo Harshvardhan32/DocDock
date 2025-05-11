@@ -8,11 +8,16 @@ import { Link } from 'react-router-dom';
 import { FaCalendarCheck } from 'react-icons/fa';
 import { FaLightbulb } from "react-icons/fa";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
+import { motion } from "framer-motion";
+import MaleImg from '../assets/Male.jpg'
+import FemaleImg from '../assets/Female.png'
+import { FaUser } from "react-icons/fa";
 
 export default function DoctorDashboard() {
     // const dispatch = useDispatch();
     // const { user } = useSelector(state => state.auth);
     // const { bookings } = useSelector(state => state.booking);
+    const [gender, setGender] = useState('Male');
 
     // Dummy user
     const user = {
@@ -64,6 +69,44 @@ export default function DoctorDashboard() {
         },
     ];
 
+    const people = [
+        {
+            id: 1,
+            name: "John Smith",
+            age: '35',
+            group: "Adult",
+            image: "https://randomuser.me/api/portraits/men/45.jpg",
+        },
+        {
+            id: 2,
+            name: "Emma Johnson",
+            age: '72',
+            group: "Elderly",
+            image: "https://randomuser.me/api/portraits/women/65.jpg",
+        },
+        {
+            id: 3,
+            name: "Lucas Smith",
+            age: '12',
+            group: "Child",
+            image: "https://randomuser.me/api/portraits/boys/12.jpg",
+        },
+        {
+            id: 4,
+            name: "Baby Lily",
+            age: '8m',
+            group: "Infant",
+            image: "https://randomuser.me/api/portraits/girls/8.jpg",
+        },
+        {
+            id: 5,
+            name: "Max",
+            age: '',
+            group: "Pet",
+            image: "https://randomuser.me/api/portraits/men/68.jpg",
+        }
+    ];
+
     const [specialties, setSpecialties] = useState(user.specialties);
     const [availability, setAvailability] = useState(user.availability);
     const [clinic, setClinic] = useState(user.clinic);
@@ -88,88 +131,65 @@ export default function DoctorDashboard() {
 
             <main className="flex-1 overflow-y-auto p-4 bg-gray-100 mb-12">
                 <div className="w-full mx-auto">
-                    <h1 className="text-2xl font-bold mb-6">Doctor Profile</h1>
-
-                    {/* Specialties */}
-                    <div className="mb-4">
-                        <label className="block mb-1 font-medium">Specialties</label>
-                        <input
-                            type="text"
-                            className="input input-bordered w-full"
-                            value={specialties.join(',')}
-                            onChange={e => setSpecialties(e.target.value.split(','))}
-                        />
-                    </div>
-
-                    {/* Availability */}
-                    <div className="mb-4">
-                        <label className="block mb-1 font-medium">Availability</label>
-                        <input
-                            type="text"
-                            className="input input-bordered w-full"
-                            value={availability.join(',')}
-                            onChange={e => setAvailability(e.target.value.split(','))}
-                        />
-                    </div>
-
-                    {/* Clinic Address */}
-                    <div className="mb-4">
-                        <label className="block mb-1 font-medium">Clinic Address</label>
-                        <input
-                            type="text"
-                            className="input input-bordered w-full"
-                            value={clinic.address}
-                            onChange={e => setClinic({ ...clinic, address: e.target.value })}
-                        />
-                    </div>
-
-                    {/* Coordinates */}
-                    <div className="flex gap-4 mb-4">
-                        <div className="flex-1">
-                            <label className="block mb-1 font-medium">Latitude</label>
-                            <input
-                                type="number"
-                                className="input input-bordered w-full"
-                                value={clinic.location.coordinates[1]}
-                                onChange={e =>
-                                    setClinic({
-                                        ...clinic,
-                                        location: {
-                                            ...clinic.location,
-                                            coordinates: [
-                                                clinic.location.coordinates[0],
-                                                parseFloat(e.target.value),
-                                            ],
-                                        },
-                                    })
-                                }
-                            />
+                    <div className="bg-white rounded-md p-5 text-gray-700">
+                        <div className="flex flex-col gap-1 items-start">
+                            <h2 className="text-gray-800 text-3xl font-semibold">Welcome to DocDock</h2>
+                            <p className="text-base">Who needs medical attention today?</p>
                         </div>
-                        <div className="flex-1">
-                            <label className="block mb-1 font-medium">Longitude</label>
-                            <input
-                                type="number"
-                                className="input input-bordered w-full"
-                                value={clinic.location.coordinates[0]}
-                                onChange={e =>
-                                    setClinic({
-                                        ...clinic,
-                                        location: {
-                                            ...clinic.location,
-                                            coordinates: [
-                                                parseFloat(e.target.value),
-                                                clinic.location.coordinates[1],
-                                            ],
-                                        },
-                                    })
-                                }
-                            />
+
+                        <div className="flex flex-col items-center justify-center mt-6">
+                            {/* Toggle switch */}
+                            <div className="relative w-[160px] p-1 border border-gray-400 rounded-md bg-white flex justify-between mb-4">
+                                {/* Sliding highlight */}
+                                <motion.div
+                                    layout
+                                    initial={false}
+                                    animate={{
+                                        x: gender === "Male" ? 0 : "100%",
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-blue-600 rounded-md z-0"
+                                />
+                                <div className="relative z-10 flex w-full justify-between text-sm font-medium text-gray-700">
+                                    <button
+                                        className={`w-1/2 py-2 cursor-pointer rounded-md ${gender === "Male" ? "text-white" : ""}`}
+                                        onClick={() => setGender("Male")}
+                                    >
+                                        Male
+                                    </button>
+                                    <button
+                                        className={`w-1/2 py-2 cursor-pointer rounded-md ${gender === "Female" ? "text-white" : ""}`}
+                                        onClick={() => setGender("Female")}
+                                    >
+                                        Female
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Gender Image */}
+                            <img src={gender === "Male" ? MaleImg : FemaleImg} alt={gender} className="max-w-[500px] w-full rounded-md object-contain" />
+                        </div>
+
+                        <div className="w-9/12 mx-auto flex flex-row gap-4 justify-between p-4">
+                            {people?.map((person) => (
+                                <div key={person.id} className='flex flex-col gap-0.5 text-center items-center'>
+                                    
+                                    {/* Image */}
+                                    <img
+                                        src={person.image}
+                                        alt={person.name}
+                                        className="w-20 h-20 rounded-full object-cover shadow-md border-2 border-gray-100 mt-4"
+                                    />
+
+                                    {/* Info */}
+                                    <h3 className="font-semibold text-gray-800 text-sm text-center">{person.name}{person.age && ', ' + person.age}</h3>
+                                    <p className="text-xs text-gray-600 text-center">
+                                        {person.group}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
                     </div>
-
-                    <button className="btn btn-primary mt-2" onClick={handleSubmit}>
-                        Save Profile
-                    </button>
 
                     {/* Recent Appointments */}
                     <div className="my-4 bg-white rounded-md p-5 text-gray-700">

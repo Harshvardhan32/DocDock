@@ -114,7 +114,7 @@ export default function Calendar() {
     };
 
     return (
-        <div className="w-full mx-auto shadow-lg rounded-md overflow-hidden bg-white">
+        <div className="w-full mx-auto border border-gray-200 rounded-md overflow-hidden bg-white">
             {renderHeader()}
             {renderDays()}
             <div>{renderCells()}</div>

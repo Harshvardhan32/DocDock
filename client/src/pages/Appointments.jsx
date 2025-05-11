@@ -7,7 +7,7 @@ import { BsInfoCircleFill } from "react-icons/bs";
 import Footer from "../components/Footer";
 import { FaFilter } from "react-icons/fa6";
 import { TiArrowLeft } from "react-icons/ti";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Calendar from "../components/Calendar";
 
@@ -196,6 +196,13 @@ export default function Appointments() {
                 <div className="w-full">
                     <Calendar />
                 </div>
+
+                <Link to='/book-appointment'
+                    className="bg-blue-600 text-white text-center rounded-md p-2 cursor-pointer"
+                >
+                    Book New Appointment
+                </Link>
+
 
                 {/* Upcomming Appointments */}
                 {(filterStatus === "all" || filterStatus === "upcoming") && (
