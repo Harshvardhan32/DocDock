@@ -4,12 +4,12 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TiArrowLeft } from "react-icons/ti";
 import { toast } from 'react-hot-toast';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Dummy doctor data
 const dummyDoctors = [
     {
-        id: 1,
+        id: "1", // Doctor ID
         name: "Dr. Emily Johnson",
         specialty: "Cardiologist",
         location: "New York",
@@ -23,29 +23,58 @@ const dummyDoctors = [
         },
     },
     {
-        id: 2,
-        name: "Dr. Michael Chen",
+        id: "2", // Doctor ID
+        name: "Dr. John Smith",
         specialty: "Dermatologist",
         location: "Los Angeles",
-        image: "https://randomuser.me/api/portraits/men/32.jpg",
+        image: "https://randomuser.me/api/portraits/men/45.jpg",
         availability: {
             dates: ["2025-05-13", "2025-05-15"],
             times: [
-                { range: "11:00 AM to 1:00 PM", slot: "11:00 AM - 1:00 PM" },
+                { range: "9:00 AM to 11:00 AM", slot: "9:00 AM - 11:00 AM" },
+                { range: "2:00 PM to 4:00 PM", slot: "2:00 PM - 4:00 PM" },
             ],
         },
     },
     {
-        id: 3,
-        name: "Dr. Jessica Martinez",
+        id: "3", // Doctor ID
+        name: "Dr. Sarah Williams",
         specialty: "Neurologist",
-        location: "New York",
-        image: "https://randomuser.me/api/portraits/women/68.jpg",
+        location: "Chicago",
+        image: "https://randomuser.me/api/portraits/women/46.jpg",
         availability: {
             dates: ["2025-05-12", "2025-05-16"],
             times: [
                 { range: "10:00 AM to 12:00 PM", slot: "10:00 AM - 12:00 PM" },
                 { range: "1:00 PM to 3:00 PM", slot: "1:00 PM - 3:00 PM" },
+            ],
+        },
+    },
+    {
+        id: "4", // Doctor ID
+        name: "Dr. Robert Brown",
+        specialty: "Orthopedic",
+        location: "Miami",
+        image: "https://randomuser.me/api/portraits/men/47.jpg",
+        availability: {
+            dates: ["2025-05-14", "2025-05-17"],
+            times: [
+                { range: "8:00 AM to 10:00 AM", slot: "8:00 AM - 10:00 AM" },
+                { range: "4:00 PM to 6:00 PM", slot: "4:00 PM - 6:00 PM" },
+            ],
+        },
+    },
+    {
+        id: "5", // Doctor ID
+        name: "Dr. Lisa Turner",
+        specialty: "Pediatrician",
+        location: "San Francisco",
+        image: "https://randomuser.me/api/portraits/women/48.jpg",
+        availability: {
+            dates: ["2025-05-10", "2025-05-13"],
+            times: [
+                { range: "8:30 AM to 10:30 AM", slot: "8:30 AM - 10:30 AM" },
+                { range: "3:00 PM to 5:00 PM", slot: "3:00 PM - 5:00 PM" },
             ],
         },
     },
@@ -56,15 +85,19 @@ const appointmentSchema = z.object({
     date: z.string().min(1, "Date is required"),
     time: z.string().min(1, "Time is required"),
     familyMember: z.string(),
-    reason: z.string().min(5, "Reason must be at least 5 characters"),
     policyNumber: z.string().optional(),
 });
 
 export default function BookAppointment() {
     const navigate = useNavigate();
-    const [selectedDoctor, setSelectedDoctor] = useState(null);
-    const [selectedLocation, setSelectedLocation] = useState("");
-    const [selectedSpecialty, setSelectedSpecialty] = useState("");
+    const location = useLocation();
+
+    // Retrieve the data passed via navigation state (for reschedule/book again)
+    const prefilledData = location.state || {};
+
+    const [selectedDoctor, setSelectedDoctor] = useState(prefilledData.doctor || null);
+    const [selectedLocation, setSelectedLocation] = useState(prefilledData.location || "");
+    const [selectedSpecialty, setSelectedSpecialty] = useState(prefilledData.specialty || "");
     const [filteredDoctors, setFilteredDoctors] = useState(dummyDoctors);
 
     const {
@@ -77,11 +110,10 @@ export default function BookAppointment() {
     } = useForm({
         resolver: zodResolver(appointmentSchema),
         defaultValues: {
-            date: "",
-            time: "",
-            familyMember: "self",
-            reason: "",
-            policyNumber: "",
+            date: prefilledData.date || "",
+            time: prefilledData.time || "",
+            familyMember: prefilledData.familyMember || "self",
+            policyNumber: prefilledData.policyNumber || "",
         },
     });
 
@@ -105,10 +137,9 @@ export default function BookAppointment() {
         }
     }, [selectedLocation, selectedSpecialty, setValue]);
 
-    // Inside onSubmit
     const onSubmit = (data) => {
         if (!selectedDoctor) {
-            toast.error("Please select a doctor before submitting the reason.");
+            toast.error("Please select a doctor before submitting the appointment.");
             return;
         }
 
@@ -136,6 +167,7 @@ export default function BookAppointment() {
             {/* Filters */}
             <section className="p-4 bg-white border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex gap-4">
+                    {/* Location Filter */}
                     <select
                         value={selectedLocation}
                         onChange={(e) => setSelectedLocation(e.target.value)}
@@ -151,6 +183,7 @@ export default function BookAppointment() {
                         )}
                     </select>
 
+                    {/* Specialty Filter */}
                     <select
                         value={selectedSpecialty}
                         onChange={(e) => setSelectedSpecialty(e.target.value)}
@@ -198,7 +231,7 @@ export default function BookAppointment() {
                         </div>
                     </section>
 
-                    {/* Date & Time */}
+                    {/* Show Date and Time only if a doctor is selected */}
                     {selectedDoctor && (
                         <>
                             <section className="p-4 border-t border-gray-200 rounded-md bg-white">
@@ -268,19 +301,6 @@ export default function BookAppointment() {
                             <option value="spouse">Spouse</option>
                             <option value="child1">Child 1</option>
                         </select>
-
-                        <label className="block text-sm font-medium mb-1">
-                            Reason for Visit
-                        </label>
-                        <textarea
-                            {...register("reason")}
-                            className="w-full border border-gray-200 outline-none px-3 py-2 rounded-md"
-                        />
-                        {errors.reason && (
-                            <p className="text-red-500 text-sm">
-                                {errors.reason.message}
-                            </p>
-                        )}
                     </section>
 
                     <div className="bg-white p-4 border-t border-gray-200 rounded-md">
@@ -300,8 +320,6 @@ export default function BookAppointment() {
                     </div>
                 </form>
             </main>
-
-            {/* Bottom Action Bar */}
         </div>
     );
 }

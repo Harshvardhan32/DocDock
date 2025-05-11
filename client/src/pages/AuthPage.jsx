@@ -3,34 +3,37 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch } from "react-redux";
-import { register, login, verifyOTP } from "../slices/authSlice";
-import countryCodes from "../data/countryCodes.json";
+import toast from "react-hot-toast";
+import { Navigate } from "react-router-dom";
+import { apiConnector } from "../services/apiConnector";
 
 const signupSchema = z.object({
     name: z.string()
         .min(4, "Name must be at least 4 characters")
         .regex(/^[A-Za-z\s]+$/, "Name must contain only letters"),
     role: z.enum(["doctor", "patient"]),
-    phone: z
-        .string()
-        .length(10, "Phone number must be exactly 10 digits")
-        .regex(/^\d{10}$/, "Phone number must be numeric"),
-    country: z.string(),
+    email: z.string().email("Invalid email address"),
+    password: z.string()
+        .min(6, "Password must be at least 6 characters")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
 });
 
 const signinSchema = z.object({
-    phone: z
-        .string()
-        .length(10, "Phone number must be exactly 10 digits")
-        .regex(/^\d{10}$/, "Phone number must be numeric"),
-    country: z.string(),
+    email: z.string().email("Invalid email address"),
+    password: z.string()
+        .min(6, "Password must be at least 6 characters")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
 });
 
 export default function AuthPage() {
     const dispatch = useDispatch();
     const [mode, setMode] = useState("signin");
-    const [showOTP, setShowOTP] = useState(false);
-    const [mobileNumber, setMobileNumber] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [redirect, setRedirect] = useState(false);
 
     const {
         register: signupRegister,
@@ -50,25 +53,56 @@ export default function AuthPage() {
         mode: "onChange",
     });
 
-    const [otpInput, setOtpInput] = useState("");
-
-    const handleSignup = (data) => {
-        const mobile = data.country + data.phone;
-        setMobileNumber(mobile);
-        dispatch(register({ name: data.name, role: data.role, mobile }));
-        setShowOTP(true);
+    const handleSignup = async (data) => {
+        try {
+            const response = await apiConnector("POST", "http://localhost:5000/api/auth/signup", {
+                name: data.name,
+                role: data.role,
+                email: data.email,
+                password: data.password,
+            });
+            console.log("hjdsgjkf", response);
+            if (response.data.success) {
+                toast.success("Registration successful!");
+                setRedirect(true);
+            } else {
+                toast.error("Registration failed. Please try again.");
+            }
+        } catch (error) {
+            console.log(error.message);
+            toast.error("An error occurred during registration.");
+        }
     };
 
-    const handleSignin = (data) => {
-        const mobile = data.country + data.phone;
-        setMobileNumber(mobile);
-        dispatch(login({ mobile }));
-        setShowOTP(true);
+    const handleSignin = async (data) => {
+        try {
+            const response = await apiConnector("POST", "http://localhost:5000/api/auth/login", {
+                email: data.email,
+                password: data.password,
+            });
+
+            if (response.data.success) {
+                const { user, token } = response.data;
+
+                // Store in localStorage
+                localStorage.setItem(
+                    "auth",
+                    JSON.stringify({ user, token })
+                );
+
+                toast.success("Login successful!");
+                setRedirect(true);
+            } else {
+                toast.error("Invalid credentials. Please try again.");
+            }
+        } catch (error) {
+            toast.error("An error occurred during login.");
+        }
     };
 
-    const handleVerifyOTP = () => {
-        dispatch(verifyOTP({ mobile: mobileNumber, otp: otpInput }));
-    };
+    if (redirect) {
+        return <Navigate to="/" />;
+    }
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
@@ -85,59 +119,36 @@ export default function AuthPage() {
                         <rect x="10" y="12" width="4" height="2" rx="1" fill="#2563eb" />
                     </svg>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900">DocDock</h1>
+                <h1 className="text-3xl font-bold text-gray-900">DocSure</h1>
                 <p className="text-gray-500 mt-1">Your health companion</p>
             </div>
 
             {/* Tabs */}
-            {!showOTP && (
-                <div className="flex space-x-6 mb-4">
-                    <button
-                        onClick={() => setMode("signin")}
-                        className={`font-semibold ${mode === "signin" ? "text-blue-600" : "text-gray-500"}`}
-                    >
-                        Sign In
-                    </button>
-                    <button
-                        onClick={() => setMode("signup")}
-                        className={`font-semibold ${mode === "signup" ? "text-blue-600" : "text-gray-500"}`}
-                    >
-                        Sign Up
-                    </button>
-                </div>
-            )}
+            <div className="flex space-x-6 mb-4">
+                <button
+                    onClick={() => setMode("signin")}
+                    className={`font-semibold ${mode === "signin" ? "text-blue-600" : "text-gray-500"}`}
+                >
+                    Sign In
+                </button>
+                <button
+                    onClick={() => setMode("signup")}
+                    className={`font-semibold ${mode === "signup" ? "text-blue-600" : "text-gray-500"}`}
+                >
+                    Sign Up
+                </button>
+            </div>
 
             {/* Form Card */}
             <div className="bg-white rounded-xl shadow-md px-8 py-8 w-full max-w-md">
-                {showOTP ? (
-                    <>
-                        <h2 className="text-xl font-semibold mb-6 text-gray-900">OTP Verification</h2>
-                        <p className="text-gray-700 mb-4">
-                            Enter the OTP sent to <strong>{mobileNumber}</strong>
-                        </p>
-                        <input
-                            type="text"
-                            maxLength={6}
-                            className="w-full border rounded px-3 py-2 mb-4"
-                            placeholder="Enter OTP"
-                            value={otpInput}
-                            onChange={(e) => setOtpInput(e.target.value)}
-                        />
-                        <button
-                            onClick={handleVerifyOTP}
-                            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded transition"
-                        >
-                            Verify OTP
-                        </button>
-                    </>
-                ) : mode === "signup" ? (
+                {mode === "signup" ? (
                     <form onSubmit={handleSignupSubmit(handleSignup)}>
                         <h2 className="text-xl font-semibold mb-6 text-gray-900">Create Account</h2>
 
                         <label className="block text-gray-700 mb-1">Full Name</label>
                         <input
                             type="text"
-                            className="w-full border rounded px-3 py-2 mb-2"
+                            className="w-full border rounded px-3 py-2 mb-2 focus:outline-none"
                             {...signupRegister("name")}
                         />
                         {signupErrors.name && (
@@ -146,34 +157,40 @@ export default function AuthPage() {
 
                         <label className="block text-gray-700 mb-1">Role</label>
                         <select
-                            className="w-full border rounded px-3 py-2 mb-4"
+                            className="w-full border rounded px-3 py-2 mb-4 focus:outline-none"
                             {...signupRegister("role")}
                         >
                             <option value="patient">Patient</option>
                             <option value="doctor">Doctor</option>
                         </select>
 
-                        <label className="block text-gray-700 mb-1">Mobile Number</label>
-                        <div className="flex mb-2">
-                            <select
-                                className="rounded-l-md max-w-[100px] border bg-gray-100 px-3 py-2"
-                                {...signupRegister("country")}
-                            >
-                                {countryCodes?.map((c, i) => (
-                                    <option key={i} value={c.code}>
-                                        {c.code} {c.country}
-                                    </option>
-                                ))}
-                            </select>
+                        <label className="block text-gray-700 mb-1">Email Address</label>
+                        <input
+                            type="email"
+                            className="w-full border rounded px-3 py-2 mb-2 focus:outline-none"
+                            {...signupRegister("email")}
+                        />
+                        {signupErrors.email && (
+                            <p className="text-red-500 text-sm mb-2">{signupErrors.email.message}</p>
+                        )}
+
+                        <label className="block text-gray-700 mb-1">Password</label>
+                        <div className="relative">
                             <input
-                                type="tel"
-                                className="flex-1 rounded-r-md border-t border-b border-r px-3 py-2"
-                                {...signupRegister("phone")}
-                                placeholder="Phone number"
+                                type={showPassword ? "text" : "password"}
+                                className="w-full border rounded px-3 py-2 mb-2 focus:outline-none"
+                                {...signupRegister("password")}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            >
+                                {showPassword ? "Hide" : "Show"}
+                            </button>
                         </div>
-                        {signupErrors.phone && (
-                            <p className="text-red-500 text-sm mb-2">{signupErrors.phone.message}</p>
+                        {signupErrors.password && (
+                            <p className="text-red-500 text-sm mb-2">{signupErrors.password.message}</p>
                         )}
 
                         <button
@@ -189,28 +206,34 @@ export default function AuthPage() {
                     </form>
                 ) : (
                     <form onSubmit={handleSigninSubmit(handleSignin)}>
-                        <h2 className="text-xl font-semibold mb-6 text-gray-900">Sign in with phone</h2>
-                        <label className="block text-gray-700 mb-1">Phone Number</label>
-                        <div className="flex mb-2">
-                            <select
-                                className="rounded-l-md max-w-[100px] border bg-gray-100 px-3 py-2"
-                                {...signinRegister("country")}
-                            >
-                                {countryCodes.map((c, i) => (
-                                    <option key={i} value={c.code}>
-                                        {c.code} {c.country}
-                                    </option>
-                                ))}
-                            </select>
+                        <h2 className="text-xl font-semibold mb-6 text-gray-900">Sign in with email</h2>
+                        <label className="block text-gray-700 mb-1">Email Address</label>
+                        <input
+                            type="email"
+                            className="w-full border rounded px-3 py-2 mb-2 focus:outline-none"
+                            {...signinRegister("email")}
+                        />
+                        {signinErrors.email && (
+                            <p className="text-red-500 text-sm mb-2">{signinErrors.email.message}</p>
+                        )}
+
+                        <label className="block text-gray-700 mb-1">Password</label>
+                        <div className="relative">
                             <input
-                                type="tel"
-                                className="flex-1 rounded-r-md border-t border-b border-r px-3 py-2"
-                                {...signinRegister("phone")}
-                                placeholder="Phone number"
+                                type={showPassword ? "text" : "password"}
+                                className="w-full border rounded px-3 py-2 mb-2 focus:outline-none"
+                                {...signinRegister("password")}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            >
+                                {showPassword ? "Hide" : "Show"}
+                            </button>
                         </div>
-                        {signinErrors.phone && (
-                            <p className="text-red-500 text-sm mb-2">{signinErrors.phone.message}</p>
+                        {signinErrors.password && (
+                            <p className="text-red-500 text-sm mb-2">{signinErrors.password.message}</p>
                         )}
 
                         <button
@@ -221,7 +244,7 @@ export default function AuthPage() {
                                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
                                 }`}
                         >
-                            Send OTP
+                            Sign In
                         </button>
                     </form>
                 )}

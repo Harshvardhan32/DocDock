@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaUser } from 'react-icons/fa';
 import ProfileDropdown from './ProfileDropdown';
 import { HiDocumentPlus } from "react-icons/hi2";
+import Logo from '../assets/logo.png';
 
 export default function Header() {
 
@@ -11,11 +12,10 @@ export default function Header() {
     return (
         <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
-                {/* <img src="/logo.png" alt="DocDock Logo" className="h-8" /> */}
-                <span className='p-2 bg-blue-700 rounded-full'>
-                    <HiDocumentPlus fill="#fff" />
+                <span className="p-1 rounded-full bg-gray-100 inline-block">
+                    <img src={Logo} alt="" className="w-9 h-9 object-cover rounded-full" />
                 </span>
-                <h1 className="text-lg font-semibold text-gray-800">DocDock</h1>
+                <h1 className="text-lg font-semibold text-gray-800">DocSure</h1>
             </div>
 
             <div className="relative flex items-center gap-4">

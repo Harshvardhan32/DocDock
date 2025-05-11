@@ -6,14 +6,14 @@ const ProfileDropdown = () => {
 
     const user = {
         name: "John Doe",
-        avatarUrl: "", // or provide a real URL if available
+        avatarUrl: "",
     };
 
     const handleLogout = () => {
-        // Add your logout logic here (e.g., clearing auth, redirecting, etc.)
-        console.log("User logged out");
-        navigate("/login");
+        localStorage.removeItem("auth");
+        navigate("/");
     };
+
 
     const goToProfile = () => {
         navigate("/profile");
@@ -31,7 +31,10 @@ const ProfileDropdown = () => {
                 />
                 <span className="text-sm font-medium text-gray-800">{user.name}</span>
             </Link>
-            <button className="border-t border-gray-300 cursor-pointer p-4 w-full text-start">
+            <button
+                className="border-t border-gray-300 cursor-pointer p-4 w-full text-start"
+                onClick={handleLogout}
+            >
                 Logout
             </button>
         </div>

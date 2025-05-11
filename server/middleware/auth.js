@@ -3,40 +3,39 @@ require('dotenv').config();
 
 exports.isAuth = async (req, res, next) => {
     try {
-        const token =
-            req.cookies.token ||
-            req.body.token ||
-            req.header("Authorization").replace("Bearer ", "");
+        let token = req.cookies?.token || req.body?.token;
+
+        const authHeader = req.headers.authorization;
+        if (!token && authHeader?.startsWith("Bearer")) {
+            token = authHeader.split(" ")[1];
+        }
 
         if (!token) {
             return res.status(400).json({
                 success: false,
-                message: 'Token Missing'
+                message: 'Token missing',
             });
         }
 
         try {
-            // Verifying the JWT using the secret key stored in environment variables
-            const decode = await jwt.verify(token, process.env.JWT_SECRET);
+            const decode = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decode;
-        } catch (error) {
-            // If JWT verification fails, return 401 Unauthorized response
+            next();
+        } catch (err) {
             return res.status(401).json({
                 success: false,
-                message: "Token is invalid"
+                message: 'Token is invalid',
             });
         }
 
-        // If JWT is valid, move on to the next middleware or request handler
-        next();
     } catch (error) {
         return res.status(500).json({
             success: false,
             errorMessage: error.message,
-            message: 'Internal Server Error!'
-        })
+            message: 'Internal Server Error!',
+        });
     }
-}
+};
 
 exports.isDoctor = async (req, res, next) => {
     try {

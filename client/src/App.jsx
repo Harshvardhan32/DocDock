@@ -1,31 +1,34 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
 import AuthPage from './pages/AuthPage';
-import PatientDashboard from './pages/PatientDashboard';
-import DoctorDashboard from './pages/DoctorDashboard';
-import { Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Appointments from './pages/Appointments';
 import BookAppointment from './pages/BookAppointment';
 import Profile from './pages/Profile';
+import Doctors from './pages/Doctors';
 
 function App() {
 
-    const { user } = useSelector(state => state.auth);
+    const auth = localStorage.getItem("auth")
+        ? JSON.parse(localStorage.getItem("auth"))
+        : null;
+
+    const user = auth?.user || null;
+    const role = user?.role || null;
+    const token = auth?.token || null;
+
+    if (!token) {
+        return <AuthPage />;
+    }
 
     return <>
         <Routes>
-            <Route path='/' element={<DoctorDashboard />} />
-            <Route path='/profile' element={<Profile />} />
-            <Route path='/doctors' element={<DoctorDashboard />} />
+            <Route path='/' element={<Home />} />
+            <Route path='/profile' element={<Profile role={role} />} />
+            <Route path='/doctors' element={<Doctors />} />
             <Route path='/appointments' element={<Appointments />} />
             <Route path="/book-appointment" element={<BookAppointment />} />
         </Routes>
     </>
-
-    // if (!user) return <AuthPage />;
-    // if (user.role === 'doctor') return <DoctorDashboard />;
-    // return <DoctorDashboard />;
-    // return <PatientDashboard />;
 }
 
 export default App;

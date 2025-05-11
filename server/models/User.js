@@ -1,39 +1,47 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
+        required: true
     },
     email: {
         type: String,
         required: true,
         unique: true
     },
-    role: {
+    password: {
         type: String,
-        enum: ['Patient', 'Doctor'],
         required: true
     },
-    specialties: [{
-        type: String
-    }],
-    availability: [{
-        day: String,
-        slots: [String],
-    }],
-    clinic: {
-        address: String,
-        location: {
-            type: {
-                type: String, enum: ['Point'], default: 'Point'
-            },
-            coordinates: {
-                type: [Number], default: [0, 0]
-            },
-        }
+    role: {
+        type: String,
+        enum: ['patient', 'doctor'],
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
-}, { timestamps: true });
+});
 
-userSchema.index({ "clinic.location": "2dsphere" });
+// Hash password before saving user
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+});
+
+// Compare password method
+userSchema.methods.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+};
+
 module.exports = mongoose.model('User', userSchema);

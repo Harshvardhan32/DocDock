@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const { updateProfile, getDoctors, getDoctorById } = require('../controllers/doctorController');
+const {
+    updateDoctorProfile,
+    getTodayAppointments
+} = require('../controllers/doctorController');
+const { isAuth } = require('../middleware/auth');
 
-router.put('/profile', auth('doctor'), updateProfile);
-router.get('/', getDoctors);
-router.get('/:id', getDoctorById);
+// router.get('/:doctorId', isAuth, getDoctorById);
+router.put('/:doctorId', isAuth, updateDoctorProfile);
+router.get('/appointments/doctor/:doctorId/today', isAuth, getTodayAppointments);
 
 module.exports = router;
